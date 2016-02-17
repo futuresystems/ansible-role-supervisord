@@ -32,8 +32,10 @@
 
 
 - name: reread configuration
-  command: supervisorctl reread
-  command: supervisorctl update
+  command: "{{ item }}"
+  with_items:
+    - supervisorctl reread
+    - supervisorctl update
   tags:
     - supervisord_service
     - supervisord
