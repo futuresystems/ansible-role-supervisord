@@ -24,7 +24,7 @@
   template:
     src: program.ini.j2
     dest: "{{ supervisord_conf_d_dir }}/{{ item.key }}.conf"
-  with_dict: supervisord_programs
+  with_dict: "{{ supervisord_programs }}"
   tags:
     - supervisord_configure
     - supervisord
@@ -46,7 +46,7 @@
   supervisorctl:
     name: "{{ item.key }}"
     state: started
-  with_dict: supervisord_programs
+  with_dict: "{{ supervisord_programs }}"
   tags:
     - supervisord_service
     - supervisord
