@@ -2,11 +2,12 @@
 
 supervisord_enable_on_startup: yes
 
-_supervisord_service_name: supervisor
+# _supervisord_service_name: set as fact
 
 _supervisord_conf_d_dir_debian: /etc/supervisor/conf.d
+_supervisord_conf_d_dir_redhat: /etc/supervisord.d
 
-supervisord_conf_d_dir: "{{ _supervisord_conf_d_dir_debian }}"
+# supervisord_conf_d_dir: set as fact
 
 # a mapping from program name to mapping from supervisord
 # configuration keys to their values.
