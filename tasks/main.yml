@@ -1,6 +1,28 @@
 ---
 
-- name: install supervisord
+################################################################################
+# Set distribution dependent facts
+################################################################################
+
+- name: set facts (Debian)
+  when: ansible_os_family == 'Debian'
+  set_fact:
+    _supervisord_service_name: supervisor
+    supervisord_conf_d_dir: "{{ _supervisord_conf_d_dir_debian }}"
+    _supervisord_conf_d_suffix: "conf"
+
+- name: set facts (RedHat)
+  when: ansible_os_family == 'RedHat'
+  set_fact:
+    _supervisord_service_name: supervisord
+    supervisord_conf_d_dir: "{{ _supervisord_conf_d_dir_redhat }}"
+    _supervisord_conf_d_suffix: "ini"
+
+################################################################################
+# Install
+################################################################################
+
+- name: install supervisord (Debian)
   when: ansible_os_family == 'Debian'
   apt:
     name: supervisor
@@ -10,6 +32,19 @@
     - supervisord
     - install
 
+- name: install supervisor (RedHat)
+  when: ansible_os_family == 'RedHat'
+  yum:
+    name: supervisor
+    state: present
+  tags:
+    - supervisord_install
+    - supervisord
+    - install
+
+################################################################################
+# configure and start
+################################################################################
 
 - name: enable on startup
   service:
@@ -23,12 +58,30 @@
 - name: add programs
   template:
     src: program.ini.j2
-    dest: "{{ supervisord_conf_d_dir }}/{{ item.key }}.conf"
+    dest: "{{ supervisord_conf_d_dir }}/{{ item.key }}.{{ _supervisord_conf_d_suffix }}"
   with_dict: "{{ supervisord_programs }}"
   tags:
     - supervisord_configure
     - supervisord
     - configure
+
+- name: create stdout logfile directory
+  file:
+    path: "{{ item.value.stdout_logfile | dirname }}"
+    state: directory
+    owner: "{{ item.value.user }}"
+    group: "{{ item.value.user }}"
+    mode: 0700
+  with_dict: "{{ supervisord_programs }}"
+
+- name: create stderr logfile directory
+  file:
+    path: "{{ item.value.stderr_logfile | dirname }}"
+    state: directory
+    owner: "{{ item.value.user }}"
+    group: "{{ item.value.user }}"
+    mode: 0700
+  with_dict: "{{ supervisord_programs }}"
 
 
 - name: reread configuration
